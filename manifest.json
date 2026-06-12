@@ -1,0 +1,19 @@
+{
+  "name": "Food Stock Master",
+  "short_name": "Food Stock",
+  "description": "食材在庫・賞味期限管理アプリ。食品ロスを防ぎ、毎日の献立をサポート。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "utilities"]
+}

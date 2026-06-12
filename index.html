@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#16a34a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Food Stock">
+  <title>Food Stock Master</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== Header ===== -->
+    <header class="app-header">
+      <div class="header-content">
+        <span class="header-icon">🥦</span>
+        <h1>Food Stock Master</h1>
+      </div>
+    </header>
+
+    <!-- ===== Tab Content ===== -->
+    <main class="tab-container">
+
+      <!-- Dashboard -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <div class="section-label">⚠️ 期限アラート</div>
+        <div id="alert-list"></div>
+
+        <div class="stats-grid">
+          <div class="stat-card primary">
+            <div class="stat-number" id="total-items">0</div>
+            <div class="stat-label">総アイテム数</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-number" id="expiring-soon">0</div>
+            <div class="stat-label">期限3日以内</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-number" id="expired-count">0</div>
+            <div class="stat-label">期限切れ</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🍱 栄養素バランス（過去3日間の消費）</div>
+          <div class="chart-wrap">
+            <canvas id="nutrition-chart"></canvas>
+          </div>
+          <p class="chart-note" id="chart-note">レシピを作って在庫を消費すると表示されます</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔍 今日のレシピ提案</div>
+          <div id="recipe-suggestion" style="margin-bottom:12px"></div>
+          <button class="btn btn-primary btn-full" onclick="openGoogleRecipe()">
+            🔎 レシピを検索
+          </button>
+        </div>
+      </section>
+
+      <!-- Inventory -->
+      <section id="tab-inventory" class="tab-pane">
+        <div class="action-bar">
+          <input type="search" id="inventory-search" class="search-input"
+            placeholder="🔍 食材を検索..." oninput="renderInventory()">
+          <button class="btn btn-secondary btn-sm" onclick="toggleAllInventory()">全選択/解除</button>
+          <button class="btn btn-primary btn-circle" onclick="openAddInventoryModal()">＋</button>
+        </div>
+        <div class="bulk-bar" id="inventory-bulk-bar" style="display:none">
+          <span id="inventory-select-count" class="bulk-count"></span>
+          <button class="btn btn-success btn-sm" onclick="addSelectedToShopping()">🛒 買い物リストへ</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSelectedInventory()">🗑️ 一括削除</button>
+        </div>
+        <div id="inventory-list"></div>
+      </section>
+
+      <!-- Shopping -->
+      <section id="tab-shopping" class="tab-pane">
+        <div class="action-bar">
+          <button class="btn btn-primary" onclick="openAddShoppingModal()">＋ リストに追加</button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleAllShopping()">全選択/解除</button>
+        </div>
+        <div class="bulk-bar" id="shopping-bulk-bar" style="display:none">
+          <span id="shopping-select-count" class="bulk-count"></span>
+          <button class="btn btn-success btn-sm" onclick="openCheckoutModal()">🛒 食材へ追加</button>
+          <button class="btn btn-amazon btn-sm" onclick="openAmazonSearch()">Amazonで探す</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBulkShopping()">🗑️</button>
+        </div>
+        <div id="shopping-list"></div>
+      </section>
+
+      <!-- Recipes -->
+      <section id="tab-recipes" class="tab-pane">
+        <div class="action-bar">
+          <input type="search" id="recipe-search" class="search-input"
+            placeholder="🔍 レシピを検索..." oninput="renderRecipes()">
+          <button class="btn btn-primary btn-circle" onclick="openAddRecipeModal()">＋</button>
+        </div>
+        <div id="recipe-list"></div>
+      </section>
+
+      <!-- Settings -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="card">
+          <div class="card-title">🍳 プリセットレシピ</div>
+          <button class="btn btn-secondary btn-full" onclick="loadPresetRecipes()">📥 プリセットレシピを追加</button>
+        </div>
+        <div class="card">
+          <div class="card-title">💾 データ管理</div>
+          <div class="settings-group">
+            <button class="btn btn-secondary btn-full" onclick="exportData()">📤 エクスポート（JSON）</button>
+            <label class="btn btn-secondary btn-full" style="justify-content:center;cursor:pointer">
+              📥 インポート（JSON）
+              <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🗑️ データ削除</div>
+          <button class="btn btn-danger btn-full" onclick="clearAllData()">全データを削除する</button>
+        </div>
+        <div class="card">
+          <div class="card-title">🌐 公式サイト</div>
+          <a href="https://bnsc-git.github.io" target="_blank" rel="noopener"
+            class="btn btn-secondary btn-full">🏠 bnsc-git ホームページを開く</a>
+        </div>
+        <div class="card">
+          <div class="card-title">ℹ️ アプリについて</div>
+          <p class="info-text">Food Stock Master v1.0</p>
+          <p class="info-text">データはブラウザのLocalStorageに保存されます。</p>
+          <p class="info-text">PWA対応：ホーム画面に追加するとアプリとして使えます。</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ===== Bottom Navigation ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">ホーム</span>
+      </button>
+      <button class="nav-item" data-tab="inventory" onclick="switchTab('inventory')">
+        <span class="nav-icon">🥗</span>
+        <span class="nav-label">食材</span>
+      </button>
+      <button class="nav-item" data-tab="shopping" onclick="switchTab('shopping')">
+        <span class="nav-icon">🛒</span>
+        <span class="nav-label">買い物</span>
+        <span class="nav-badge" id="shopping-badge" style="display:none"></span>
+      </button>
+      <button class="nav-item" data-tab="recipes" onclick="switchTab('recipes')">
+        <span class="nav-icon">🍳</span>
+        <span class="nav-label">レシピ</span>
+      </button>
+      <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">設定</span>
+      </button>
+    </nav>
+
+  </div><!-- /#app -->
+
+  <!-- ===== Modal ===== -->
+  <div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="modal-title"></h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Global datalist for inventory item names -->
+  <datalist id="all-item-names"></datalist>
+  <datalist id="unit-list">
+    <option value="個">
+    <option value="g">
+    <option value="kg">
+    <option value="ml">
+    <option value="L">
+    <option value="本">
+    <option value="枚">
+    <option value="袋">
+    <option value="パック">
+    <option value="缶">
+    <option value="箱">
+  </datalist>
+
+  <script src="app.js"></script>
+</body>
+</html>
