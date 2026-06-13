@@ -320,6 +320,11 @@ function autoCleanup() {
   });
 
   STATE.inventory = result;
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 3);
+  cutoff.setHours(0, 0, 0, 0);
+  STATE.consumptionHistory = STATE.consumptionHistory.filter(h => new Date(h.date) >= cutoff);
 }
 
 // ---- Utilities ----
