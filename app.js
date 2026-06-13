@@ -14,6 +14,265 @@ let nutritionChart = null;
 let ingRowCounter = 0;
 const inventorySelected = new Set();
 
+// ---- i18n ----
+const I18N = {
+  ja: {
+    daysOverdue: n => `${n}日超過`,
+    today: '今日まで',
+    daysLeft: n => `あと${n}日`,
+    noAlerts: '✅ 期限切れ・期限間近の食材はありません',
+    chartLabels: ['タンパク質', '脂質', '炭水化物', 'ビタミン', 'ミネラル'],
+    chartNote: 'レシピを作って在庫を消費すると表示されます',
+    noExpiring: '期限間近の食材はありません',
+    invEmpty: '食材を追加してください',
+    notFound: '見つかりません',
+    expiryLabel: '期限',
+    selectedCount: n => `${n}件選択中`,
+    addedToShopping: '買い物リストに追加しました',
+    deleteNConfirm: n => `${n}件を削除しますか？`,
+    deleteItemConfirm: 'この食材を削除しますか？',
+    shoppingEmpty: '買い物リストは空です',
+    checkToDelete: '削除する食材にチェックを入れてください',
+    amazonEmpty: '買い物リストが空です',
+    amazonCheck: 'チェックした食材をAmazonで検索します。\nリストの食材にチェックを入れてください。',
+    checkoutEmpty: '買い物リストが空です',
+    checkoutCheck: '食材へ追加する食材にチェックを入れてください',
+    checkoutInfo: n => `チェックした ${n} 件の賞味期限を確認して在庫へ追加します`,
+    addInvTitle: '食材を追加',
+    addShopTitle: '買い物リストに追加',
+    addRecipeTitle: 'レシピを追加',
+    editRecipeTitle: 'レシピを編集',
+    checkoutTitle: '食材へ追加',
+    lblName: '食材名 *',
+    lblQty: '数量 *',
+    lblQtyOpt: '数量',
+    lblUnit: '単位',
+    lblExpiry: '賞味期限 *',
+    lblNutrients: '栄養素（0〜5 の目安）',
+    lblDesc: '説明（任意）',
+    lblRecipeName: 'レシピ名 *',
+    lblIngredients: '材料',
+    phName: '例: 牛乳',
+    phShopName: '例: 卵',
+    phUnit: '個/g/ml',
+    phDesc: '作り方のメモ…',
+    phRecipeName: '例: 肉じゃが',
+    phIngName: '食材名',
+    phQty: '数量',
+    phIngUnit: '単位',
+    protein: 'タンパク質', fat: '脂質', carbs: '炭水化物', vitamins: 'ビタミン', minerals: 'ミネラル',
+    btnAdd: '追加する',
+    btnSave: '保存する',
+    btnAddIng: '＋ 材料を追加',
+    btnCheckoutAll: '✅ 食材へ追加する',
+    btnCook: '🍽️ 作って消費',
+    btnSearchRecipe: '🔍 検索',
+    invRequired: '食材名と賞味期限は必須です',
+    shopRequired: '食材名を入力してください',
+    recipeRequired: 'レシピ名を入力してください',
+    expiringPrefix: '⚠️ 期限間近：',
+    showMore: 'もっと見る',
+    showLess: '閉じる',
+    deleteRecipeConfirm: 'このレシピを削除しますか？',
+    stockNone: name => `${name}（在庫なし）`,
+    stockUnitMismatch: (name, units, unit) => `${name}（在庫の単位が違います: ${units} → レシピは ${unit}）`,
+    stockInsufficient: (name, needed, avail, unit) => `${name}（必要: ${needed}${unit}、在庫: ${avail}${unit}）`,
+    stockCheckMsg: missing => `以下の食材を確認してください:\n${missing}\n\n続けますか？`,
+    cooked: name => `「${name}」を作りました！`,
+    allPresetsAdded: 'すべてのプリセットレシピはすでに追加されています',
+    presetsAdded: n => `${n}件のプリセットレシピを追加しました`,
+    importOverwrite: '現在のデータを上書きしますか？',
+    importDone: 'インポート完了しました',
+    importFail: 'JSONファイルの読み込みに失敗しました',
+    clearConfirm: '全データを削除します。元に戻せません。本当によろしいですか？',
+    clearDone: 'データを削除しました',
+    recipeQuery: items => items.map(i => i.name).join('と') + 'を使ったレシピ',
+    recipeQueryDefault: '簡単 時短レシピ',
+    recipeSearchSuffix: '+レシピ',
+    recipeEmpty: 'レシピを追加してください',
+    alertLabel: '⚠️ 期限アラート',
+    nutritionTitle: '🍱 栄養素バランス（過去3日間の消費）',
+    recipeTitle: '🔍 今日のレシピ提案',
+    searchRecipeBtn: '🔎 レシピを検索',
+    statTotal: '総アイテム数',
+    statSoon: '期限3日以内',
+    statExpired: '期限切れ',
+    navHome: 'ホーム',
+    navInventory: '食材',
+    navShopping: '買い物',
+    navRecipes: 'レシピ',
+    navSettings: '設定',
+    searchInventory: '🔍 食材を検索...',
+    selectAll: '全選択/解除',
+    addToShoppingBtn: '🛒 買い物リストへ',
+    bulkDeleteBtn: '🗑️ 一括削除',
+    addToListBtn: '＋ リストに追加',
+    addToInventoryBtn: '🛒 食材へ追加',
+    amazonBtn: 'Amazonで探す',
+    searchRecipes: '🔍 レシピを検索...',
+    presetTitle: '🍳 プリセットレシピ',
+    loadPresetsBtn: '📥 プリセットレシピを追加',
+    dataTitle: '💾 データ管理',
+    exportBtn: '📤 エクスポート（JSON）',
+    importBtn: '📥 インポート（JSON）',
+    deleteDataTitle: '🗑️ データ削除',
+    clearBtn: '全データを削除する',
+    siteTitle: '🌐 公式サイト',
+    siteBtn: '🏠 bnsc-git ホームページを開く',
+    aboutTitle: 'ℹ️ アプリについて',
+    aboutVersion: 'Food Stock Master v1.0',
+    aboutStorage: 'データはブラウザのLocalStorageに保存されます。',
+    aboutPWA: 'PWA対応：ホーム画面に追加するとアプリとして使えます。',
+    langOther: 'EN',
+  },
+  en: {
+    daysOverdue: n => `${n}d overdue`,
+    today: 'Today',
+    daysLeft: n => `${n}d left`,
+    noAlerts: '✅ No items expiring soon',
+    chartLabels: ['Protein', 'Fat', 'Carbs', 'Vitamins', 'Minerals'],
+    chartNote: 'Cook recipes to see nutrition balance',
+    noExpiring: 'No near-expiry items',
+    invEmpty: 'Add ingredients to get started',
+    notFound: 'Not found',
+    expiryLabel: 'Exp',
+    selectedCount: n => `${n} selected`,
+    addedToShopping: 'Added to shopping list',
+    deleteNConfirm: n => `Delete ${n} item(s)?`,
+    deleteItemConfirm: 'Delete this ingredient?',
+    shoppingEmpty: 'Shopping list is empty',
+    checkToDelete: 'Check items to delete',
+    amazonEmpty: 'Shopping list is empty',
+    amazonCheck: 'Check items in the list to search on Amazon.',
+    checkoutEmpty: 'Shopping list is empty',
+    checkoutCheck: 'Check items to add to inventory',
+    checkoutInfo: n => `Set expiry dates for ${n} checked item(s)`,
+    addInvTitle: 'Add Ingredient',
+    addShopTitle: 'Add to Shopping List',
+    addRecipeTitle: 'Add Recipe',
+    editRecipeTitle: 'Edit Recipe',
+    checkoutTitle: 'Add to Inventory',
+    lblName: 'Item name *',
+    lblQty: 'Quantity *',
+    lblQtyOpt: 'Quantity',
+    lblUnit: 'Unit',
+    lblExpiry: 'Expiry date *',
+    lblNutrients: 'Nutrients (0–5 scale)',
+    lblDesc: 'Description (optional)',
+    lblRecipeName: 'Recipe name *',
+    lblIngredients: 'Ingredients',
+    phName: 'e.g. Milk',
+    phShopName: 'e.g. Eggs',
+    phUnit: 'pcs/g/ml',
+    phDesc: 'Cooking notes…',
+    phRecipeName: 'e.g. Stir fry',
+    phIngName: 'Ingredient',
+    phQty: 'Qty',
+    phIngUnit: 'Unit',
+    protein: 'Protein', fat: 'Fat', carbs: 'Carbs', vitamins: 'Vitamins', minerals: 'Minerals',
+    btnAdd: 'Add',
+    btnSave: 'Save',
+    btnAddIng: '＋ Add ingredient',
+    btnCheckoutAll: '✅ Add to inventory',
+    btnCook: '🍽️ Cook & consume',
+    btnSearchRecipe: '🔍 Search',
+    invRequired: 'Item name and expiry date are required',
+    shopRequired: 'Please enter an item name',
+    recipeRequired: 'Please enter a recipe name',
+    expiringPrefix: '⚠️ Expiring soon: ',
+    showMore: 'Show more',
+    showLess: 'Show less',
+    deleteRecipeConfirm: 'Delete this recipe?',
+    stockNone: name => `${name} (out of stock)`,
+    stockUnitMismatch: (name, units, unit) => `${name} (unit mismatch: ${units} → needs ${unit})`,
+    stockInsufficient: (name, needed, avail, unit) => `${name} (need: ${needed}${unit}, have: ${avail}${unit})`,
+    stockCheckMsg: missing => `Please check the following:\n${missing}\n\nContinue anyway?`,
+    cooked: name => `Cooked "${name}"!`,
+    allPresetsAdded: 'All preset recipes already added',
+    presetsAdded: n => `Added ${n} preset recipe(s)`,
+    importOverwrite: 'Overwrite current data?',
+    importDone: 'Import complete',
+    importFail: 'Failed to read JSON file',
+    clearConfirm: 'Delete all data? This cannot be undone.',
+    clearDone: 'Data deleted',
+    recipeQuery: items => items.map(i => i.name).join(' ') + ' recipe',
+    recipeQueryDefault: 'easy quick recipe',
+    recipeSearchSuffix: ' recipe',
+    recipeEmpty: 'Add recipes to get started',
+    alertLabel: '⚠️ Expiry Alerts',
+    nutritionTitle: '🍱 Nutrition Balance (last 3 days)',
+    recipeTitle: '🔍 Recipe Suggestions',
+    searchRecipeBtn: '🔎 Search Recipes',
+    statTotal: 'Total Items',
+    statSoon: 'Exp. in 3 days',
+    statExpired: 'Expired',
+    navHome: 'Home',
+    navInventory: 'Stock',
+    navShopping: 'Shop',
+    navRecipes: 'Recipes',
+    navSettings: 'Settings',
+    searchInventory: '🔍 Search ingredients...',
+    selectAll: 'Select / Deselect all',
+    addToShoppingBtn: '🛒 Add to shopping',
+    bulkDeleteBtn: '🗑️ Delete selected',
+    addToListBtn: '＋ Add to list',
+    addToInventoryBtn: '🛒 Add to stock',
+    amazonBtn: 'Find on Amazon',
+    searchRecipes: '🔍 Search recipes...',
+    presetTitle: '🍳 Preset Recipes',
+    loadPresetsBtn: '📥 Load preset recipes',
+    dataTitle: '💾 Data',
+    exportBtn: '📤 Export (JSON)',
+    importBtn: '📥 Import (JSON)',
+    deleteDataTitle: '🗑️ Delete Data',
+    clearBtn: 'Delete all data',
+    siteTitle: '🌐 Website',
+    siteBtn: '🏠 bnsc-git Homepage',
+    aboutTitle: 'ℹ️ About',
+    aboutVersion: 'Food Stock Master v1.0',
+    aboutStorage: 'Data is stored in browser LocalStorage.',
+    aboutPWA: 'PWA: Add to home screen to use as an app.',
+    langOther: 'JA',
+  }
+};
+
+let currentLang = localStorage.getItem('fsm_lang') || 'ja';
+
+function t(key, ...args) {
+  const dict = I18N[currentLang] || I18N.ja;
+  const val = dict[key];
+  return typeof val === 'function' ? val(...args) : (val ?? key);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('fsm_lang', lang);
+  applyStaticI18n();
+  renderDashboard();
+  updateShoppingBadge();
+  updateInventoryBulkBar();
+  updateShoppingBulkBar();
+  const active = document.querySelector('.tab-pane.active');
+  if (active) {
+    const name = active.id.replace('tab-', '');
+    if (name !== 'dashboard') renderTab(name);
+  }
+}
+
+function applyStaticI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.tagName === 'INPUT' && 'placeholder' in el) {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  document.documentElement.lang = currentLang;
+  const btn = document.getElementById('lang-toggle-btn');
+  if (btn) btn.textContent = t('langOther');
+}
+
 // ---- Affiliate / Monetization Config ----
 // ▼ ここに各サービスのIDを設定してください
 const AFFILIATE = {
@@ -90,9 +349,9 @@ function expiryStatus(expiryDateStr) {
 
 function daysLabel(expiryDateStr) {
   const d = daysLeft(expiryDateStr);
-  if (d < 0)  return `${Math.abs(d)}日超過`;
-  if (d === 0) return '今日まで';
-  return `あと${d}日`;
+  if (d < 0)  return t('daysOverdue', Math.abs(d));
+  if (d === 0) return t('today');
+  return t('daysLeft', d);
 }
 
 function getInventoryNames() {
@@ -144,7 +403,7 @@ function renderAlerts() {
 
   if (!items.length) {
     el.innerHTML = `<div class="alert-item ok">
-      <span class="alert-name">✅ 期限切れ・期限間近の食材はありません</span>
+      <span class="alert-name">${t('noAlerts')}</span>
     </div>`;
     return;
   }
@@ -199,7 +458,7 @@ function renderNutritionChart() {
   nutritionChart = new Chart(canvas.getContext('2d'), {
     type: 'radar',
     data: {
-      labels: ['タンパク質', '脂質', '炭水化物', 'ビタミン', 'ミネラル'],
+      labels: t('chartLabels'),
       datasets: [{
         data,
         backgroundColor: 'rgba(22,163,74,.18)',
@@ -230,7 +489,7 @@ function renderRecipeSuggestion() {
   const el = document.getElementById('recipe-suggestion');
   const items = getNearExpiryItems(3);
   if (!items.length) {
-    el.innerHTML = '<span class="suggest-chip-none">期限間近の食材はありません</span>';
+    el.innerHTML = `<span class="suggest-chip-none">${t('noExpiring')}</span>`;
   } else {
     el.innerHTML = items.map(i =>
       `<span class="suggest-chip">⚠️ ${escHtml(i.name)}</span>`
@@ -247,9 +506,7 @@ function getNearExpiryItems(max) {
 
 function openGoogleRecipe() {
   const items = getNearExpiryItems(3);
-  const q = items.length
-    ? items.map(i => i.name).join('と') + 'を使ったレシピ'
-    : '簡単 時短レシピ';
+  const q = items.length ? t('recipeQuery', items) : t('recipeQueryDefault');
   window.open(`https://www.google.com/search?udm=5&q=${encodeURIComponent(q)}`, '_blank');
 }
 
@@ -269,7 +526,7 @@ function renderInventory() {
   if (!items.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="empty-icon">🥗</div>
-      <div class="empty-text">${q ? '見つかりません' : '食材を追加してください'}</div>
+      <div class="empty-text">${q ? t('notFound') : t('invEmpty')}</div>
     </div>`;
     return;
   }
@@ -284,7 +541,7 @@ function renderInventory() {
         <div class="item-name">${escHtml(item.name)}
           <span class="item-expiry-badge ${st}">${daysLabel(item.expiryDate)}</span>
         </div>
-        <div class="item-meta">期限: ${item.expiryDate}</div>
+        <div class="item-meta">${t('expiryLabel')}: ${item.expiryDate}</div>
       </div>
       <div class="item-qty-wrap">
         <button class="qty-btn" onclick="adjustQty('${item.id}',-1)">−</button>
@@ -317,7 +574,7 @@ function updateQty(id, val) {
 }
 
 function deleteInventoryItem(id) {
-  if (!confirm('この食材を削除しますか？')) return;
+  if (!confirm(t('deleteItemConfirm'))) return;
   STATE.inventory = STATE.inventory.filter(i => i.id !== id);
   inventorySelected.delete(id);
   persist();
@@ -341,7 +598,7 @@ function updateInventoryBulkBar() {
   if (!bar) return;
   const n = inventorySelected.size;
   bar.style.display = n ? 'flex' : 'none';
-  if (countEl) countEl.textContent = `${n}件選択中`;
+  if (countEl) countEl.textContent = t('selectedCount', n);
 }
 
 function addSelectedToShopping() {
@@ -358,12 +615,12 @@ function addSelectedToShopping() {
   persist();
   updateInventoryBulkBar();
   renderInventory();
-  alert('買い物リストに追加しました');
+  alert(t('addedToShopping'));
 }
 
 function deleteSelectedInventory() {
   if (!inventorySelected.size) return;
-  if (!confirm(`${inventorySelected.size}件を削除しますか？`)) return;
+  if (!confirm(t('deleteNConfirm', inventorySelected.size))) return;
   STATE.inventory = STATE.inventory.filter(i => !inventorySelected.has(i.id));
   inventorySelected.clear();
   persist();
@@ -395,39 +652,36 @@ function openAddInventoryModal() {
   defaultExpiry.setDate(defaultExpiry.getDate() + 7);
   const defExp = defaultExpiry.toISOString().split('T')[0];
 
-  showModal('食材を追加', `
+  showModal(t('addInvTitle'), `
     <div class="form-group">
-      <label class="form-label">食材名 *</label>
-      <input id="inv-name" class="form-input" type="text" placeholder="例: 牛乳" list="all-item-names"
+      <label class="form-label">${t('lblName')}</label>
+      <input id="inv-name" class="form-input" type="text" placeholder="${t('phName')}" list="all-item-names"
         oninput="autoFillInventoryHistory(this.value)">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">数量 *</label>
+        <label class="form-label">${t('lblQty')}</label>
         <input id="inv-qty" class="form-input" type="number" value="1" min="0" step="0.1">
       </div>
       <div class="form-group">
-        <label class="form-label">単位</label>
-        <input id="inv-unit" class="form-input" type="text" placeholder="個/g/ml" list="unit-list">
+        <label class="form-label">${t('lblUnit')}</label>
+        <input id="inv-unit" class="form-input" type="text" placeholder="${t('phUnit')}" list="unit-list">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">賞味期限 *</label>
+      <label class="form-label">${t('lblExpiry')}</label>
       <input id="inv-expiry" class="form-input" type="date" value="${defExp}" min="${todayStr()}">
     </div>
     <div class="form-group">
-      <label class="form-label">栄養素（0〜5 の目安）</label>
+      <label class="form-label">${t('lblNutrients')}</label>
       <div class="nutrients-grid">
-        ${['protein:タンパク質','fat:脂質','carbs:炭水化物','vitamins:ビタミン','minerals:ミネラル'].map(s => {
-          const [key, label] = s.split(':');
-          return `<div class="nutrient-cell">
-            <div class="nutrient-label">${label}</div>
+        ${['protein','fat','carbs','vitamins','minerals'].map(key => `<div class="nutrient-cell">
+            <div class="nutrient-label">${t(key)}</div>
             <input class="nutrient-input" id="nut-${key}" type="number" value="0" min="0" max="5" step="0.5">
-          </div>`;
-        }).join('')}
+          </div>`).join('')}
       </div>
     </div>
-    <button class="btn btn-primary btn-full" onclick="addInventoryItem()">追加する</button>
+    <button class="btn btn-primary btn-full" onclick="addInventoryItem()">${t('btnAdd')}</button>
   `);
 }
 
@@ -468,7 +722,7 @@ function addInventoryItem() {
   const qty    = parseFloat(document.getElementById('inv-qty').value) || 0;
   const unit   = document.getElementById('inv-unit').value.trim();
   const expiry = document.getElementById('inv-expiry').value;
-  if (!name || !expiry) { alert('食材名と賞味期限は必須です'); return; }
+  if (!name || !expiry) { alert(t('invRequired')); return; }
 
   const nutrients = {};
   ['protein','fat','carbs','vitamins','minerals'].forEach(k => {
@@ -494,7 +748,7 @@ function renderShoppingList() {
   if (!STATE.shoppingList.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="empty-icon">🛒</div>
-      <div class="empty-text">買い物リストは空です</div>
+      <div class="empty-text">${t('shoppingEmpty')}</div>
     </div>`;
     updateShoppingBadge();
     updateShoppingBulkBar();
@@ -533,7 +787,7 @@ function updateShoppingBulkBar() {
   if (!bar) return;
   const n = STATE.shoppingList.filter(i => i.checked).length;
   bar.style.display = n ? 'flex' : 'none';
-  if (countEl) countEl.textContent = `${n}件選択中`;
+  if (countEl) countEl.textContent = t('selectedCount', n);
 }
 
 function strikeItem(id) {
@@ -561,8 +815,8 @@ function setShoppingQty(id, val) {
 
 function deleteBulkShopping() {
   const checked = STATE.shoppingList.filter(i => i.checked);
-  if (!checked.length) { alert('削除する食材にチェックを入れてください'); return; }
-  if (!confirm(`${checked.length}件を削除しますか？`)) return;
+  if (!checked.length) { alert(t('checkToDelete')); return; }
+  if (!confirm(t('deleteNConfirm', checked.length))) return;
   STATE.shoppingList = STATE.shoppingList.filter(i => !i.checked);
   persist();
   renderShoppingList();
@@ -584,15 +838,15 @@ function updateShoppingBadge() {
 
 function openAddShoppingModal() {
   refreshNameDatalist();
-  showModal('買い物リストに追加', `
+  showModal(t('addShopTitle'), `
     <div class="form-group">
-      <label class="form-label">食材名 *</label>
-      <input id="sh-name" class="form-input" type="text" placeholder="例: 卵" list="all-item-names"
+      <label class="form-label">${t('lblName')}</label>
+      <input id="sh-name" class="form-input" type="text" placeholder="${t('phShopName')}" list="all-item-names"
         oninput="autoFillShoppingHistory(this.value)">
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">数量</label>
+        <label class="form-label">${t('lblQtyOpt')}</label>
         <div class="item-qty-wrap" style="margin-top:2px">
           <button type="button" class="qty-btn" onclick="modalAdjustQty(-1)">−</button>
           <input id="sh-qty" class="qty-input" type="number" value="1" min="0" step="0.1">
@@ -600,11 +854,11 @@ function openAddShoppingModal() {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">単位</label>
-        <input id="sh-unit" class="form-input" type="text" placeholder="個/g/ml" list="unit-list">
+        <label class="form-label">${t('lblUnit')}</label>
+        <input id="sh-unit" class="form-input" type="text" placeholder="${t('phUnit')}" list="unit-list">
       </div>
     </div>
-    <button class="btn btn-primary btn-full" onclick="addShoppingItem()">追加する</button>
+    <button class="btn btn-primary btn-full" onclick="addShoppingItem()">${t('btnAdd')}</button>
   `);
 }
 
@@ -620,7 +874,7 @@ function addShoppingItem() {
   const name = document.getElementById('sh-name').value.trim();
   const qty  = parseFloat(document.getElementById('sh-qty').value) || 1;
   const unit = document.getElementById('sh-unit').value.trim();
-  if (!name) { alert('食材名を入力してください'); return; }
+  if (!name) { alert(t('shopRequired')); return; }
 
   const existing = STATE.shoppingList.find(i => i.name === name && i.unit === unit);
   if (existing) {
@@ -635,16 +889,16 @@ function addShoppingItem() {
 }
 
 function openAmazonSearch() {
-  if (!STATE.shoppingList.length) { alert('買い物リストが空です'); return; }
+  if (!STATE.shoppingList.length) { alert(t('amazonEmpty')); return; }
   const targets = STATE.shoppingList.filter(i => i.checked);
-  if (!targets.length) { alert('チェックした食材をAmazonで検索します。\nリストの食材にチェックを入れてください。'); return; }
+  if (!targets.length) { alert(t('amazonCheck')); return; }
   window.open(affiliateAmazon(targets.map(i => i.name).join(' ')), '_blank');
 }
 
 function openCheckoutModal() {
-  if (!STATE.shoppingList.length) { alert('買い物リストが空です'); return; }
+  if (!STATE.shoppingList.length) { alert(t('checkoutEmpty')); return; }
   const targets = STATE.shoppingList.filter(i => i.checked);
-  if (!targets.length) { alert('食材へ追加する食材にチェックを入れてください'); return; }
+  if (!targets.length) { alert(t('checkoutCheck')); return; }
 
   const rows = targets.map(item => {
     const suggested = inferExpiryDate(item.name);
@@ -661,13 +915,13 @@ function openCheckoutModal() {
     </div>`;
   }).join('');
 
-  showModal('食材へ追加', `
+  showModal(t('checkoutTitle'), `
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
-      チェックした ${targets.length} 件の賞味期限を確認して在庫へ追加します
+      ${t('checkoutInfo', targets.length)}
     </p>
     ${rows}
     <div style="margin-top:14px">
-      <button class="btn btn-primary btn-full" onclick="checkoutAll()">✅ 食材へ追加する</button>
+      <button class="btn btn-primary btn-full" onclick="checkoutAll()">${t('btnCheckoutAll')}</button>
     </div>
   `);
 }
@@ -752,7 +1006,7 @@ function renderRecipes() {
   if (!filtered.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="empty-icon">🍳</div>
-      <div class="empty-text">${q ? '見つかりません' : 'レシピを追加してください'}</div>
+      <div class="empty-text">${q ? t('notFound') : t('recipeEmpty')}</div>
     </div>`;
     return;
   }
@@ -767,7 +1021,7 @@ function renderRecipes() {
       : '';
 
     const alertHtml = urgency.items.length
-      ? `<div class="recipe-expiry-alert">⚠️ 期限間近：${
+      ? `<div class="recipe-expiry-alert">${t('expiringPrefix')}${
           urgency.items.map(i =>
             `<strong>${escHtml(i.name)}</strong>（${daysLabel(i.date)}）`
           ).join('　')
@@ -785,7 +1039,7 @@ function renderRecipes() {
       ? recipe.description.length > 60
         ? `<div class="recipe-desc-wrap">
             <div class="recipe-desc collapsed" id="desc-${recipe.id}">${escHtml(recipe.description)}</div>
-            <button class="desc-toggle" onclick="toggleDesc('${recipe.id}')">もっと見る</button>
+            <button class="desc-toggle" onclick="toggleDesc('${recipe.id}')">${t('showMore')}</button>
           </div>`
         : `<div class="recipe-desc">${escHtml(recipe.description)}</div>`
       : '';
@@ -797,10 +1051,10 @@ function renderRecipes() {
       ${descHtml}
       <div class="ingredient-chips">${chipHtml}</div>
       <div class="recipe-actions">
-        <button class="btn btn-success btn-sm" onclick="cookRecipe('${recipe.id}')">🍽️ 作って消費</button>
-        <button class="btn btn-secondary btn-sm" onclick="openEditRecipeModal('${recipe.id}')">✏️ 編集</button>
+        <button class="btn btn-success btn-sm" onclick="cookRecipe('${recipe.id}')">${t('btnCook')}</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditRecipeModal('${recipe.id}')">${t('editRecipe')}</button>
         <button class="btn btn-secondary btn-sm" data-recipe="${escHtml(recipe.name)}"
-          onclick="searchRecipe(this)">🔍 検索</button>
+          onclick="searchRecipe(this)">${t('btnSearchRecipe')}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteRecipe('${recipe.id}')">🗑️</button>
       </div>
     </div>`;
@@ -809,11 +1063,11 @@ function renderRecipes() {
 
 function searchRecipe(btn) {
   const name = btn.dataset.recipe || '';
-  window.open(`https://www.google.com/search?udm=5&q=${encodeURIComponent(name + '+レシピ')}`, '_blank');
+  window.open(`https://www.google.com/search?udm=5&q=${encodeURIComponent(name + t('recipeSearchSuffix'))}`, '_blank');
 }
 
 function deleteRecipe(id) {
-  if (!confirm('このレシピを削除しますか？')) return;
+  if (!confirm(t('deleteRecipeConfirm'))) return;
   STATE.customRecipes = STATE.customRecipes.filter(r => r.id !== id);
   persist();
   renderRecipes();
@@ -829,20 +1083,20 @@ function cookRecipe(id) {
       const sameUnit = STATE.inventory.filter(i => i.name === ing.name && i.quantity > 0 && i.unit === ing.unit);
       const diffUnit = STATE.inventory.filter(i => i.name === ing.name && i.quantity > 0 && i.unit !== ing.unit);
       if (!sameUnit.length && !diffUnit.length) {
-        return `${ing.name}（在庫なし）`;
+        return t('stockNone', ing.name);
       }
       if (!sameUnit.length) {
         const units = [...new Set(diffUnit.map(i => i.unit))].join('/');
-        return `${ing.name}（在庫の単位が違います: ${units} → レシピは ${ing.unit}）`;
+        return t('stockUnitMismatch', ing.name, units, ing.unit);
       }
       const available = sameUnit.reduce((s, i) => s + i.quantity, 0);
       return available < ing.quantity
-        ? `${ing.name}（必要: ${ing.quantity}${ing.unit}、在庫: ${available.toFixed(1)}${ing.unit}）`
+        ? t('stockInsufficient', ing.name, ing.quantity, available.toFixed(1), ing.unit)
         : null;
     })
     .filter(Boolean);
 
-  if (missing.length && !confirm(`以下の食材を確認してください:\n${missing.join('\n')}\n\n続けますか？`)) return;
+  if (missing.length && !confirm(t('stockCheckMsg', missing.join('\n')))) return;
 
   const nutrientsConsumed = { protein:0, fat:0, carbs:0, vitamins:0, minerals:0 };
 
@@ -877,38 +1131,38 @@ function cookRecipe(id) {
   if (document.getElementById('tab-dashboard').classList.contains('active')) {
     renderNutritionChart();
   }
-  alert(`「${recipe.name}」を作りました！`);
+  alert(t('cooked', recipe.name));
 }
 
 function openAddRecipeModal() {
   refreshNameDatalist();
   ingRowCounter = 0;
-  showModal('レシピを追加', `
+  showModal(t('addRecipeTitle'), `
     <div class="form-group">
-      <label class="form-label">レシピ名 *</label>
-      <input id="rcp-name" class="form-input" type="text" placeholder="例: 肉じゃが">
+      <label class="form-label">${t('lblRecipeName')}</label>
+      <input id="rcp-name" class="form-input" type="text" placeholder="${t('phRecipeName')}">
     </div>
     <div class="form-group">
-      <label class="form-label">説明（任意）</label>
-      <textarea id="rcp-desc" class="form-input" rows="2" placeholder="作り方のメモ…"></textarea>
+      <label class="form-label">${t('lblDesc')}</label>
+      <textarea id="rcp-desc" class="form-input" rows="2" placeholder="${t('phDesc')}"></textarea>
     </div>
     <div class="form-group">
-      <label class="form-label">材料</label>
+      <label class="form-label">${t('lblIngredients')}</label>
       <div id="ing-container">${buildIngRow()}</div>
       <button class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="addIngRow()">
-        ＋ 材料を追加
+        ${t('btnAddIng')}
       </button>
     </div>
-    <button class="btn btn-primary btn-full" onclick="saveRecipe()">保存する</button>
+    <button class="btn btn-primary btn-full" onclick="saveRecipe()">${t('btnSave')}</button>
   `);
 }
 
 function buildIngRow() {
   const idx = ingRowCounter++;
   return `<div class="ing-row" id="ing-${idx}">
-    <input type="text"   class="ing-name" placeholder="食材名" list="all-item-names">
-    <input type="number" class="ing-qty"  placeholder="数量" value="1" min="0" step="0.1">
-    <input type="text"   class="ing-unit" placeholder="単位" list="unit-list">
+    <input type="text"   class="ing-name" placeholder="${t('phIngName')}" list="all-item-names">
+    <input type="number" class="ing-qty"  placeholder="${t('phQty')}" value="1" min="0" step="0.1">
+    <input type="text"   class="ing-unit" placeholder="${t('phIngUnit')}" list="unit-list">
     <button class="ing-remove" onclick="removeIngRow(${idx})">✕</button>
   </div>`;
 }
@@ -929,7 +1183,7 @@ function removeIngRow(idx) {
 function saveRecipe() {
   const name = document.getElementById('rcp-name').value.trim();
   const desc = document.getElementById('rcp-desc').value.trim();
-  if (!name) { alert('レシピ名を入力してください'); return; }
+  if (!name) { alert(t('recipeRequired')); return; }
 
   const ingredients = [];
   document.querySelectorAll('#ing-container .ing-row').forEach(row => {
@@ -950,15 +1204,15 @@ function toggleDesc(id) {
   const btn = el ? el.nextElementSibling : null;
   if (!el || !btn) return;
   const collapsed = el.classList.toggle('collapsed');
-  btn.textContent = collapsed ? 'もっと見る' : '閉じる';
+  btn.textContent = collapsed ? t('showMore') : t('showLess');
 }
 
 function buildIngRowWithValues(ing) {
   const idx = ingRowCounter++;
   return `<div class="ing-row" id="ing-${idx}">
-    <input type="text"   class="ing-name" placeholder="食材名" list="all-item-names" value="${escHtml(ing.name)}">
-    <input type="number" class="ing-qty"  placeholder="数量" value="${ing.quantity}" min="0" step="0.1">
-    <input type="text"   class="ing-unit" placeholder="単位" list="unit-list" value="${escHtml(ing.unit)}">
+    <input type="text"   class="ing-name" placeholder="${t('phIngName')}" list="all-item-names" value="${escHtml(ing.name)}">
+    <input type="number" class="ing-qty"  placeholder="${t('phQty')}" value="${ing.quantity}" min="0" step="0.1">
+    <input type="text"   class="ing-unit" placeholder="${t('phIngUnit')}" list="unit-list" value="${escHtml(ing.unit)}">
     <button class="ing-remove" onclick="removeIngRow(${idx})">✕</button>
   </div>`;
 }
@@ -968,28 +1222,28 @@ function openEditRecipeModal(id) {
   if (!recipe) return;
   refreshNameDatalist();
   ingRowCounter = 0;
-  showModal('レシピを編集', `
+  showModal(t('editRecipeTitle'), `
     <div class="form-group">
-      <label class="form-label">レシピ名 *</label>
-      <input id="rcp-name" class="form-input" type="text" value="${escHtml(recipe.name)}" placeholder="例: 肉じゃが">
+      <label class="form-label">${t('lblRecipeName')}</label>
+      <input id="rcp-name" class="form-input" type="text" value="${escHtml(recipe.name)}" placeholder="${t('phRecipeName')}">
     </div>
     <div class="form-group">
-      <label class="form-label">説明（任意）</label>
-      <textarea id="rcp-desc" class="form-input" rows="2" placeholder="作り方のメモ…">${escHtml(recipe.description || '')}</textarea>
+      <label class="form-label">${t('lblDesc')}</label>
+      <textarea id="rcp-desc" class="form-input" rows="2" placeholder="${t('phDesc')}">${escHtml(recipe.description || '')}</textarea>
     </div>
     <div class="form-group">
-      <label class="form-label">材料</label>
+      <label class="form-label">${t('lblIngredients')}</label>
       <div id="ing-container">${recipe.ingredients.map(i => buildIngRowWithValues(i)).join('')}</div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="addIngRow()">＋ 材料を追加</button>
+      <button class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="addIngRow()">${t('btnAddIng')}</button>
     </div>
-    <button class="btn btn-primary btn-full" onclick="saveEditRecipe('${id}')">保存する</button>
+    <button class="btn btn-primary btn-full" onclick="saveEditRecipe('${id}')">${t('btnSave')}</button>
   `);
 }
 
 function saveEditRecipe(id) {
   const name = document.getElementById('rcp-name').value.trim();
   const desc = document.getElementById('rcp-desc').value.trim();
-  if (!name) { alert('レシピ名を入力してください'); return; }
+  if (!name) { alert(t('recipeRequired')); return; }
   const ingredients = [];
   document.querySelectorAll('#ing-container .ing-row').forEach(row => {
     const n = row.querySelector('.ing-name').value.trim();
@@ -1009,11 +1263,11 @@ function saveEditRecipe(id) {
 function loadPresetRecipes() {
   const existing = new Set(STATE.customRecipes.map(r => r.name));
   const toAdd = PRESET_RECIPES.filter(r => !existing.has(r.name));
-  if (!toAdd.length) { alert('すべてのプリセットレシピはすでに追加されています'); return; }
+  if (!toAdd.length) { alert(t('allPresetsAdded')); return; }
   STATE.customRecipes.push(...toAdd.map(r => ({ ...r, id: uid() })));
   persist();
   renderRecipes();
-  alert(`${toAdd.length}件のプリセットレシピを追加しました`);
+  alert(t('presetsAdded', toAdd.length));
 }
 
 // ====================================================
@@ -1059,7 +1313,7 @@ function importData(evt) {
     try {
       const data = JSON.parse(e.target.result);
       if (typeof data !== 'object' || data === null) throw new Error('invalid');
-      if (!confirm('現在のデータを上書きしますか？')) return;
+      if (!confirm(t('importOverwrite'))) return;
       STATE.inventory          = Array.isArray(data.inventory)          ? data.inventory          : [];
       STATE.shoppingList       = Array.isArray(data.shoppingList)       ? data.shoppingList       : [];
       STATE.customRecipes      = Array.isArray(data.customRecipes)      ? data.customRecipes      : [];
@@ -1070,16 +1324,16 @@ function importData(evt) {
       updateShoppingBadge();
       updateShoppingBulkBar();
       updateInventoryBulkBar();
-      alert('インポート完了しました');
+      alert(t('importDone'));
     } catch {
-      alert('JSONファイルの読み込みに失敗しました');
+      alert(t('importFail'));
     }
   };
   reader.readAsText(file);
 }
 
 function clearAllData() {
-  if (!confirm('全データを削除します。元に戻せません。本当によろしいですか？')) return;
+  if (!confirm(t('clearConfirm'))) return;
   ['fsm_inventory','fsm_shopping','fsm_recipes','fsm_history'].forEach(k =>
     localStorage.removeItem(k)
   );
@@ -1089,7 +1343,7 @@ function clearAllData() {
   updateShoppingBadge();
   updateShoppingBulkBar();
   updateInventoryBulkBar();
-  alert('データを削除しました');
+  alert(t('clearDone'));
 }
 
 // ====================================================
@@ -1357,6 +1611,7 @@ function init() {
     STATE.customRecipes = PRESET_RECIPES.map(r => ({ ...r, id: uid() }));
     persist();
   }
+  applyStaticI18n();
   renderDashboard();
   updateShoppingBadge();
   refreshNameDatalist();
